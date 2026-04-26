@@ -492,21 +492,25 @@ function detectBrowseFields(records) {
   FIELDS.by     = fields.find(f=>f.toLowerCase().includes('submitted by')||f.toLowerCase().includes('submitter')||(f.toLowerCase().includes('name')&&!f.toLowerCase().includes('glaze')));
 }
 function detectSubmitFields(fields) {
+  const nonWritable=['formula','lookup','rollup','count','autoNumber','createdTime','lastModifiedTime','createdBy','lastModifiedBy','multipleLookupValues','button'];
+  const writable=f=>!nonWritable.includes(f.type);
   META = {
-    studioFields:  fields.filter(f=>f.name.toLowerCase().includes('studio')).sort((a,b)=>a.name.localeCompare(b.name)),
-    outsideFields: fields.filter(f=>f.name.toLowerCase().includes('outside')).sort((a,b)=>a.name.localeCompare(b.name)),
+    studioFields:  fields.filter(f=>f.name.toLowerCase().includes('studio')&&writable(f)).sort((a,b)=>a.name.localeCompare(b.name)),
+    outsideFields: fields.filter(f=>f.name.toLowerCase().includes('outside')&&writable(f)).sort((a,b)=>a.name.localeCompare(b.name)),
     photoField:    fields.find(f=>f.type==='multipleAttachments'),
-    clayField:     fields.find(f=>f.name.toLowerCase().includes('clay')),
-    notesField:    fields.find(f=>f.name.toLowerCase().includes('note')),
-    byField:       fields.find(f=>f.name.toLowerCase().includes('submitted by')||f.name.toLowerCase().includes('submitter')||(f.name.toLowerCase().includes('name')&&!f.name.toLowerCase().includes('glaze'))),
+    clayField:     fields.find(f=>f.name.toLowerCase().includes('clay')&&writable(f)),
+    notesField:    fields.find(f=>f.name.toLowerCase().includes('note')&&writable(f)),
+    byField:       fields.find(f=>writable(f)&&(f.name.toLowerCase().includes('submitted by')||f.name.toLowerCase().includes('submitter')||(f.name.toLowerCase().includes('name')&&!f.name.toLowerCase().includes('glaze')))),
   };
 }
 function detectSubmitFieldsFallback(records) {
   const allF=new Set(); records.forEach(r=>Object.keys(r.fields).forEach(k=>allF.add(k)));
   const fn=Array.from(allF); const wrap=name=>name?{name,id:null}:null;
+  // Exclude computed/boolean fields (e.g. "Has Outside Glaze") which start with "Has "
+  const notComputed=f=>!f.toLowerCase().startsWith('has ');
   META = {
-    studioFields: fn.filter(f=>f.toLowerCase().includes('studio')).sort().map(name=>({name,id:null})),
-    outsideFields:fn.filter(f=>f.toLowerCase().includes('outside')).sort().map(name=>({name,id:null})),
+    studioFields: fn.filter(f=>f.toLowerCase().includes('studio')&&notComputed(f)).sort().map(name=>({name,id:null})),
+    outsideFields:fn.filter(f=>f.toLowerCase().includes('outside')&&notComputed(f)).sort().map(name=>({name,id:null})),
     photoField: wrap(fn.find(f=>{const v=allRecords.find(r=>r.fields[f])?.fields[f]; return Array.isArray(v)&&v[0]?.url;})),
     clayField:  wrap(fn.find(f=>f.toLowerCase().includes('clay'))),
     notesField: wrap(fn.find(f=>f.toLowerCase().includes('note'))),
