@@ -416,7 +416,7 @@ function updateModalWishBtn() {
 }
 
 // ── Submit state ──────────────────────────────────────────────────────────────
-let formClay='', formLayers=[{type:'studio',value:''},{type:'studio',value:''}];
+let formClay='', formLayers=[{type:'studio',value:''}];
 let formPhoto=null, formSubmitting=false;
 
 // ── Browse filter state ───────────────────────────────────────────────────────
@@ -591,7 +591,7 @@ function onFormOutsideInput(idx,query) {
   const sugBox=document.getElementById(`fsug-${idx}`); if (!sugBox) return;
   const q=query.trim().toLowerCase(); if (!q) { sugBox.classList.remove('open'); return; }
   const matches=outsideGlazes.filter(g=>g.toLowerCase().includes(q)).slice(0,8);
-  sugBox.innerHTML=!matches.length?`<div class="f-suggestion-empty">No matches yet — will be saved as new</div>`:matches.map((g,i)=>{const hl=g.replace(new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi'),'<mark>$1</mark>'); return `<div class="f-suggestion" data-idx="${i}" data-val="${g}" onmousedown="selectFormOutside(${idx},'${g.replace(/'/g,"\\'")}')"> ${hl}</div>`;}).join('');
+  sugBox.innerHTML=!matches.length?`<div class="f-suggestion-empty">No matches yet — will be saved as new</div>`:matches.map((g,i)=>{const hl=g.replace(new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi'),'<mark>$1</mark>'); return `<div class="f-suggestion" data-idx="${i}" data-val="${g}" onmousedown="selectFormOutside(${idx},'${g.replace(/'/g,"\\'")}');" ontouchstart="event.preventDefault();selectFormOutside(${idx},'${g.replace(/'/g,"\\'")}');"> ${hl}</div>`;}).join('');
   sugBox.classList.add('open');
 }
 function selectFormOutside(idx,val) { formLayers[idx].value=val; document.getElementById(`linput-${idx}`).innerHTML=renderLayerInput(idx,formLayers[idx]); }
@@ -615,7 +615,7 @@ async function submitForm() {
   if (formSubmitting) return;
   clearError();
   if (!formClay) { showError('Please select a clay body.'); return; }
-  if (formLayers.filter(l=>l.value.trim()).length<2) { showError('Please enter at least two glaze layers.'); return; }
+  if (formLayers.filter(l=>l.value.trim()).length<1) { showError('Please enter at least one glaze layer.'); return; }
   formSubmitting=true;
   const btn=document.querySelector('.submit-btn'); btn.disabled=true; btn.textContent='Submitting…';
   try {
@@ -643,7 +643,7 @@ async function submitForm() {
   finally { formSubmitting=false; btn.disabled=false; btn.textContent='Submit combo'; }
 }
 function resetForm() {
-  formClay=''; formLayers=[{type:'studio',value:''},{type:'studio',value:''}]; formPhoto=null;
+  formClay=''; formLayers=[{type:'studio',value:''}]; formPhoto=null;
   document.querySelectorAll('.clay-chip-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('photo-input').value='';
   document.getElementById('photo-preview-wrap').style.display='none';
